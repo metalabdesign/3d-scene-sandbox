@@ -247,24 +247,112 @@
   generateBlocks();
 
   // ============================================================
+  //  STEP 3 — CLICK-TO-ROTATE (Raycasting + Per-Object Animation)
+  // ============================================================
+  //
+  //  The big question: how do you know which 3D object was clicked?
+  //
+  //  You can't just use DOM click events — the entire scene is ONE <canvas>.
+  //  Instead, Three.js uses RAYCASTING:
+  //
+  //    1. Convert the mouse's screen position (pixels) into "normalized
+  //       device coordinates" (NDC): X and Y from -1 to +1.
+  //    2. Shoot an invisible ray from the camera through that point.
+  //    3. Check which objects in the scene the ray intersects.
+  //
+  //  It's like pointing a laser pointer through the screen — whatever
+  //  3D object the laser hits first is what was "clicked".
+
+  // The Raycaster object does the math for us.
+  const raycaster = new THREE.Raycaster();
+
+  // A Vector2 to store the mouse position in NDC (-1 to +1).
+  const pointer = new THREE.Vector2();
+
+  // We store rotation state on each mesh using "userData" — a built-in
+  // property on every Three.js object where you can attach any custom data.
+  // This avoids global arrays and keeps each object self-contained.
+  //
+  // When a box is clicked, we set:
+  //   mesh.userData.spinning = true
+  //   mesh.userData.spinAxis = 'x', 'y', or 'z' (random)
+  //   mesh.userData.spinSpeed = rotation speed in radians per frame
+
+  // Add rotation speed to CONFIG
+  CONFIG.rotationSpeed = 0.03;  // radians per frame (~1.7 degrees)
+
+  function onPointerDown(event) {
+    // --- Convert pixel coordinates to NDC ---
+    //
+    // Screen pixels:  (0,0) = top-left,  (width, height) = bottom-right
+    // NDC:            (-1,+1) = top-left, (+1,-1) = bottom-right
+    //
+    // Formula:
+    //   ndcX =  (pixelX / width)  * 2 - 1     →  maps 0..width  to -1..+1
+    //   ndcY = -(pixelY / height) * 2 + 1     →  maps 0..height to +1..-1
+    //                                              (negative because Y is flipped)
+    pointer.x =  (event.clientX / window.innerWidth)  * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // --- Cast the ray ---
+    // setFromCamera() creates a ray starting at the camera, passing through
+    // the pointer's NDC position. It handles all the matrix math internally.
+    raycaster.setFromCamera(pointer, camera);
+
+    // --- Check for intersections ---
+    // intersectObjects() tests the ray against an array of objects.
+    // The second argument (true) means "check children recursively" —
+    // important because our meshes are inside a Group.
+    const intersects = raycaster.intersectObjects(blocksGroup.children, false);
+
+    if (intersects.length > 0) {
+      // intersects[0] is the CLOSEST hit. Its .object is the mesh.
+      const hitMesh = intersects[0].object;
+
+      // Toggle spinning: if already spinning, stop it. Otherwise, start.
+      if (hitMesh.userData.spinning) {
+        hitMesh.userData.spinning = false;
+      } else {
+        hitMesh.userData.spinning = true;
+
+        // Pick a random axis: 'x', 'y', or 'z'
+        const axes = ['x', 'y', 'z'];
+        hitMesh.userData.spinAxis = axes[Math.floor(Math.random() * 3)];
+        hitMesh.userData.spinSpeed = CONFIG.rotationSpeed;
+      }
+    }
+  }
+
+  // Listen for clicks on the canvas.
+  // We use 'pointerdown' instead of 'click' because it fires faster
+  // and also works for touch screens.
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+  // ============================================================
   //  THE RENDER LOOP (Animation Loop)
   // ============================================================
   //
-  //  A static render would just call `renderer.render(scene, camera)` once.
-  //  But we want animation, so we use requestAnimationFrame (rAF).
+  //  Now the loop does actual work: it checks every mesh in the group
+  //  and rotates the ones that have spinning = true.
   //
-  //  rAF tells the browser: "call this function before the next screen repaint."
-  //  This gives us ~60fps (or whatever the monitor's refresh rate is).
-  //
-  //  Even though nothing moves yet, we set up the loop now because
-  //  every future step will add animation inside it.
+  //  mesh.rotation is an Euler object with .x, .y, .z properties
+  //  (angles in radians). Adding to them each frame = continuous rotation.
 
   function animate() {
-    // Schedule the next frame FIRST. This ensures the loop continues
-    // even if the rest of the function throws an error.
     requestAnimationFrame(animate);
 
-    // Draw the scene from the camera's point of view.
+    // --- Animate spinning blocks ---
+    if (blocksGroup) {
+      blocksGroup.children.forEach((mesh) => {
+        if (mesh.userData.spinning) {
+          // mesh.rotation[axis] += speed
+          // e.g., mesh.rotation.y += 0.03
+          const axis = mesh.userData.spinAxis;
+          mesh.rotation[axis] += mesh.userData.spinSpeed;
+        }
+      });
+    }
+
     renderer.render(scene, camera);
   }
 
