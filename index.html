@@ -591,6 +591,12 @@
               row * spacingZ - offsetZ, // Z: row position, centered
             );
 
+            // Pre-assign a random rotation axis at generation time.
+            // Each block gets a fixed axis (X or Z) that it will always
+            // spin on when clicked. This is stored in userData so it
+            // persists with the mesh and is ready before any click happens.
+            mesh.userData.spinAxis = pick(["x", "z"]);
+
             blocksGroup.add(mesh);
           }
         }
@@ -761,9 +767,8 @@
           } else {
             hitMesh.userData.spinning = true;
 
-            // Pick a random axis: 'x', 'y', or 'z'
-            const axes = ["x", "y", "z"];
-            hitMesh.userData.spinAxis = axes[Math.floor(Math.random() * 3)];
+            // The spin axis was already assigned at generation time
+            // (see generateBlocks), so we just set the speed here.
             hitMesh.userData.spinSpeed = CONFIG.rotationSpeed;
           }
         }
