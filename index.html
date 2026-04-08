@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Opus — Generative 3D Blocks</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opus — Generative 3D Blocks</title>
 
-  <!--
+    <!--
     ============================================================
     THREE.JS — LOADED FROM CDN
     ============================================================
@@ -16,7 +16,7 @@
     The "import map" below lets us write `import * as THREE from 'three'`
     just like a real project would, even without a bundler.
   -->
-  <!--
+    <!--
     The import map now includes TWO entries:
       - "three"         → the core library (Scene, Camera, Mesh, etc.)
       - "three/addons/" → extra utilities that ship with Three.js but aren't
@@ -25,36 +25,36 @@
     Three.js separates these because not every project needs controls, loaders,
     post-processing, etc. You only import what you use, keeping bundle size small.
   -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+        }
       }
-    }
-  </script>
+    </script>
 
-  <style>
-    /*
+    <style>
+      /*
       Full-screen canvas with no scrollbars.
       The canvas will be the ENTIRE page — like the Opus reference.
     */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      overflow: hidden;            /* No scrollbars */
-      background: #1a1a1a;        /* Dark fallback while scene loads */
-    }
+      body {
+        overflow: hidden; /* No scrollbars */
+        background: #1a1a1a; /* Dark fallback while scene loads */
+      }
 
-    canvas {
-      display: block;              /* Removes the inline gap below canvas */
-    }
+      canvas {
+        display: block; /* Removes the inline gap below canvas */
+      }
 
-    /* ============================================================
+      /* ============================================================
        STEP 4 — CONFIG PANEL STYLES
        ============================================================
        The panel is a fixed-position HTML overlay on top of the canvas.
@@ -62,146 +62,160 @@
        visible so you can show/hide the panel.
     */
 
-    /* Toggle button — always visible in the top-right corner */
-    #panel-toggle {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 8px 16px;
-      font: 13px/1 'SF Mono', 'Fira Code', monospace;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    #panel-toggle:hover {
-      background: rgba(0, 0, 0, 0.9);
-    }
+      /* Toggle button — always visible in the top-right corner */
+      #panel-toggle {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        font:
+          13px/1 "SF Mono",
+          "Fira Code",
+          monospace;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+      #panel-toggle:hover {
+        background: rgba(0, 0, 0, 0.9);
+      }
 
-    /* The panel itself — slides in from the right */
-    #config-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 300px;
-      height: 100vh;
-      background: rgba(10, 10, 10, 0.92);
-      backdrop-filter: blur(10px);
-      color: #eee;
-      font: 13px/1.6 'SF Mono', 'Fira Code', monospace;
-      padding: 60px 20px 20px;
-      overflow-y: auto;
-      z-index: 90;
-      transform: translateX(100%);        /* Hidden off-screen by default */
-      transition: transform 0.3s ease;
-    }
-    #config-panel.open {
-      transform: translateX(0);            /* Slides in when .open class added */
-    }
+      /* The panel itself — slides in from the right */
+      #config-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 100vh;
+        background: rgba(10, 10, 10, 0.92);
+        backdrop-filter: blur(10px);
+        color: #eee;
+        font:
+          13px/1.6 "SF Mono",
+          "Fira Code",
+          monospace;
+        padding: 60px 20px 20px;
+        overflow-y: auto;
+        z-index: 90;
+        transform: translateX(100%); /* Hidden off-screen by default */
+        transition: transform 0.3s ease;
+      }
+      #config-panel.open {
+        transform: translateX(0); /* Slides in when .open class added */
+      }
 
-    /* Section headers inside the panel */
-    #config-panel h3 {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #888;
-      margin: 20px 0 10px;
-      border-bottom: 1px solid #333;
-      padding-bottom: 6px;
-    }
-    #config-panel h3:first-child {
-      margin-top: 0;
-    }
+      /* Section headers inside the panel */
+      #config-panel h3 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #888;
+        margin: 20px 0 10px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 6px;
+      }
+      #config-panel h3:first-child {
+        margin-top: 0;
+      }
 
-    /* Each control row: label + input side by side */
-    .control-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .control-row label {
-      flex: 0 0 auto;
-      margin-right: 12px;
-      color: #aaa;
-    }
-    .control-row input[type="range"] {
-      flex: 1;
-      accent-color: #e63946;
-    }
-    .control-row .value-display {
-      flex: 0 0 36px;
-      text-align: right;
-      color: #fff;
-      font-size: 12px;
-    }
+      /* Each control row: label + input side by side */
+      .control-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .control-row label {
+        flex: 0 0 auto;
+        margin-right: 12px;
+        color: #aaa;
+      }
+      .control-row input[type="range"] {
+        flex: 1;
+        accent-color: #e63946;
+      }
+      .control-row .value-display {
+        flex: 0 0 36px;
+        text-align: right;
+        color: #fff;
+        font-size: 12px;
+      }
 
-    /* Regenerate button */
-    #btn-regenerate {
-      width: 100%;
-      padding: 10px;
-      margin-top: 16px;
-      background: #e63946;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font: bold 13px/1 'SF Mono', 'Fira Code', monospace;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #btn-regenerate:hover {
-      background: #c62e3b;
-    }
+      /* Regenerate button */
+      #btn-regenerate {
+        width: 100%;
+        padding: 10px;
+        margin-top: 16px;
+        background: #e63946;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font:
+          bold 13px/1 "SF Mono",
+          "Fira Code",
+          monospace;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      #btn-regenerate:hover {
+        background: #c62e3b;
+      }
 
-    /* Palette selector */
-    #cfg-palette {
-      width: 100%;
-      padding: 6px 8px;
-      background: #222;
-      color: #eee;
-      border: 1px solid #444;
-      border-radius: 4px;
-      font: 13px/1.4 'SF Mono', 'Fira Code', monospace;
-      margin-bottom: 10px;
-    }
+      /* Palette selector */
+      #cfg-palette {
+        width: 100%;
+        padding: 6px 8px;
+        background: #222;
+        color: #eee;
+        border: 1px solid #444;
+        border-radius: 4px;
+        font:
+          13px/1.4 "SF Mono",
+          "Fira Code",
+          monospace;
+        margin-bottom: 10px;
+      }
 
-    /* Pause button */
-    #btn-pause {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      background: #264653;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font: bold 13px/1 'SF Mono', 'Fira Code', monospace;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #btn-pause:hover {
-      background: #1d3640;
-    }
+      /* Pause button */
+      #btn-pause {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        background: #264653;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font:
+          bold 13px/1 "SF Mono",
+          "Fira Code",
+          monospace;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      #btn-pause:hover {
+        background: #1d3640;
+      }
 
-    /* Color swatches preview */
-    .palette-preview {
-      display: flex;
-      gap: 3px;
-      margin-top: 6px;
-      margin-bottom: 10px;
-    }
-    .palette-preview .swatch {
-      width: 16px;
-      height: 16px;
-      border-radius: 2px;
-    }
-  </style>
-</head>
-<body>
-
-<!--
+      /* Color swatches preview */
+      .palette-preview {
+        display: flex;
+        gap: 3px;
+        margin-top: 6px;
+        margin-bottom: 10px;
+      }
+      .palette-preview .swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
   ============================================================
   STEP 4 — CONFIG PANEL HTML
   ============================================================
@@ -210,596 +224,696 @@
   The panel starts hidden (no .open class) and slides in when toggled.
 -->
 
-<button id="panel-toggle">Config</button>
+    <button id="panel-toggle">Config</button>
 
-<div id="config-panel">
-  <h3>Grid Layout</h3>
+    <div id="config-panel">
+      <h3>Grid Layout</h3>
 
-  <div class="control-row">
-    <label>Rows</label>
-    <input type="range" id="cfg-rows" min="2" max="20" step="1" value="8" />
-    <span class="value-display" id="val-rows">8</span>
-  </div>
+      <div class="control-row">
+        <label>Rows</label>
+        <input type="range" id="cfg-rows" min="2" max="20" step="1" value="8" />
+        <span class="value-display" id="val-rows">8</span>
+      </div>
 
-  <div class="control-row">
-    <label>Cols</label>
-    <input type="range" id="cfg-cols" min="2" max="20" step="1" value="10" />
-    <span class="value-display" id="val-cols">10</span>
-  </div>
+      <div class="control-row">
+        <label>Cols</label>
+        <input
+          type="range"
+          id="cfg-cols"
+          min="2"
+          max="20"
+          step="1"
+          value="10"
+        />
+        <span class="value-display" id="val-cols">10</span>
+      </div>
 
-  <div class="control-row">
-    <label>Gap</label>
-    <input type="range" id="cfg-gap" min="0" max="1" step="0.05" value="0.15" />
-    <span class="value-display" id="val-gap">0.15</span>
-  </div>
+      <div class="control-row">
+        <label>Gap</label>
+        <input
+          type="range"
+          id="cfg-gap"
+          min="0"
+          max="1"
+          step="0.05"
+          value="0.15"
+        />
+        <span class="value-display" id="val-gap">0.15</span>
+      </div>
 
-  <h3>Block Size</h3>
+      <h3>Block Size</h3>
 
-  <div class="control-row">
-    <label>Max Height</label>
-    <input type="range" id="cfg-maxHeight" min="1" max="15" step="0.5" value="6" />
-    <span class="value-display" id="val-maxHeight">6</span>
-  </div>
+      <div class="control-row">
+        <label>Max Height</label>
+        <input
+          type="range"
+          id="cfg-maxHeight"
+          min="1"
+          max="15"
+          step="0.5"
+          value="6"
+        />
+        <span class="value-display" id="val-maxHeight">6</span>
+      </div>
 
-  <div class="control-row">
-    <label>Max Width</label>
-    <input type="range" id="cfg-maxWidth" min="0.5" max="5" step="0.25" value="2.5" />
-    <span class="value-display" id="val-maxWidth">2.5</span>
-  </div>
+      <div class="control-row">
+        <label>Max Width</label>
+        <input
+          type="range"
+          id="cfg-maxWidth"
+          min="0.5"
+          max="5"
+          step="0.25"
+          value="2.5"
+        />
+        <span class="value-display" id="val-maxWidth">2.5</span>
+      </div>
 
-  <h3>Animation</h3>
+      <h3>Animation</h3>
 
-  <div class="control-row">
-    <label>Spin Speed</label>
-    <input type="range" id="cfg-speed" min="0.005" max="0.15" step="0.005" value="0.03" />
-    <span class="value-display" id="val-speed">0.03</span>
-  </div>
+      <div class="control-row">
+        <label>Spin Speed</label>
+        <input
+          type="range"
+          id="cfg-speed"
+          min="0.005"
+          max="0.15"
+          step="0.005"
+          value="0.03"
+        />
+        <span class="value-display" id="val-speed">0.03</span>
+      </div>
 
-  <h3>Palette</h3>
+      <h3>Palette</h3>
 
-  <select id="cfg-palette">
-    <option value="mondrian" selected>Mondrian / De Stijl</option>
-    <option value="pastel">Pastel</option>
-    <option value="monochrome">Monochrome</option>
-    <option value="neon">Neon</option>
-    <option value="earth">Earth Tones</option>
-  </select>
-  <div class="palette-preview" id="palette-preview"></div>
+      <select id="cfg-palette">
+        <option value="mondrian" selected>Mondrian / De Stijl</option>
+        <option value="pastel">Pastel</option>
+        <option value="monochrome">Monochrome</option>
+        <option value="neon">Neon</option>
+        <option value="earth">Earth Tones</option>
+      </select>
+      <div class="palette-preview" id="palette-preview"></div>
 
-  <button id="btn-regenerate">Regenerate</button>
-  <button id="btn-pause">Pause</button>
-</div>
+      <button id="btn-regenerate">Regenerate</button>
+      <button id="btn-pause">Pause</button>
+    </div>
 
-<script type="module">
-  // ============================================================
-  //  STEP 1 — THE THREE PILLARS: Scene, Camera, Renderer
-  // ============================================================
-  //
-  //  Think of it like a film set:
-  //    Scene    = the stage where you place objects
-  //    Camera   = where the audience sits
-  //    Renderer = the film crew that captures what the camera sees
-  //              and projects it onto the screen (our <canvas>)
+    <script type="module">
+      // ============================================================
+      //  STEP 1 — THE THREE PILLARS: Scene, Camera, Renderer
+      // ============================================================
+      //
+      //  Think of it like a film set:
+      //    Scene    = the stage where you place objects
+      //    Camera   = where the audience sits
+      //    Renderer = the film crew that captures what the camera sees
+      //              and projects it onto the screen (our <canvas>)
 
-  import * as THREE from 'three';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-  // ----- 1. SCENE -----
-  // The scene is just a container. You add objects to it, and the
-  // renderer will draw whatever is inside.
-  const scene = new THREE.Scene();
+      // ----- 1. SCENE -----
+      // The scene is just a container. You add objects to it, and the
+      // renderer will draw whatever is inside.
+      const scene = new THREE.Scene();
 
-  // Set a background color. This is what you see where there are no objects.
-  // THREE.Color accepts hex strings, CSS color names, or RGB values.
-  scene.background = new THREE.Color('#1a1a1a');
+      // Set a background color. This is what you see where there are no objects.
+      // THREE.Color accepts hex strings, CSS color names, or RGB values.
+      scene.background = new THREE.Color("#1a1a1a");
 
-  // ----- 2. CAMERA -----
-  // PerspectiveCamera mimics how human eyes work:
-  //   - Objects farther away appear smaller
-  //   - It has a "field of view" (FOV) angle
-  //
-  // Constructor: PerspectiveCamera(fov, aspect, near, far)
-  //   fov    = vertical field of view in degrees (60-75 is natural)
-  //   aspect = width / height of the viewport
-  //   near   = closest distance the camera can "see" (anything closer is invisible)
-  //   far    = farthest distance the camera can "see"
-  const camera = new THREE.PerspectiveCamera(
-    60,                                    // FOV: 60 degrees
-    window.innerWidth / window.innerHeight, // Aspect ratio: match the browser window
-    0.1,                                   // Near plane: 0.1 units
-    1000                                   // Far plane: 1000 units
-  );
+      // ----- 2. CAMERA -----
+      // PerspectiveCamera mimics how human eyes work:
+      //   - Objects farther away appear smaller
+      //   - It has a "field of view" (FOV) angle
+      //
+      // Constructor: PerspectiveCamera(fov, aspect, near, far)
+      //   fov    = vertical field of view in degrees (60-75 is natural)
+      //   aspect = width / height of the viewport
+      //   near   = closest distance the camera can "see" (anything closer is invisible)
+      //   far    = farthest distance the camera can "see"
+      const camera = new THREE.PerspectiveCamera(
+        60, // FOV: 60 degrees
+        window.innerWidth / window.innerHeight, // Aspect ratio: match the browser window
+        0.1, // Near plane: 0.1 units
+        1000, // Far plane: 1000 units
+      );
 
-  // Position the camera.
-  // Three.js uses a RIGHT-HANDED coordinate system:
-  //   X = right/left
-  //   Y = up/down
-  //   Z = toward/away from you (positive Z comes toward you)
-  //
-  // We place the camera up and back so it looks down at the scene at an angle.
-  camera.position.set(8, 12, 18);
+      // Position the camera.
+      // Three.js uses a RIGHT-HANDED coordinate system:
+      //   X = right/left
+      //   Y = up/down
+      //   Z = toward/away from you (positive Z comes toward you)
+      //
+      // We place the camera up and back so it looks down at the scene at an angle.
+      camera.position.set(8, 12, 18);
 
-  // Point the camera at the center of the scene (0, 0, 0).
-  camera.lookAt(0, 0, 0);
+      // Point the camera at the center of the scene (0, 0, 0).
+      camera.lookAt(0, 0, 0);
 
-  // ----- 3. RENDERER -----
-  // The renderer does the actual drawing. WebGLRenderer uses your GPU
-  // to render the scene very fast (60fps typically).
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,  // Smooth edges instead of jagged pixels
-  });
-
-  // Set the render size to fill the entire window.
-  // The second argument (false) prevents Three.js from changing the CSS size —
-  // we want pixel-perfect rendering at the window's device pixel ratio.
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  // Set the pixel ratio to match the display (important for Retina screens).
-  // Without this, the scene would look blurry on high-DPI displays.
-  renderer.setPixelRatio(window.devicePixelRatio);
-
-  // The renderer creates a <canvas> element. We add it to the page.
-  document.body.appendChild(renderer.domElement);
-
-  // ============================================================
-  //  STEP 6 — ORBIT CONTROLS (Right-Click Drag)
-  // ============================================================
-  //
-  //  OrbitControls is a Three.js "addon" — a pre-built utility that
-  //  handles camera orbiting, panning, and zooming via mouse/touch.
-  //
-  //  By default, OrbitControls maps:
-  //    Left click   → orbit (rotate around target)
-  //    Right click  → pan (slide sideways)
-  //    Scroll wheel → zoom (dolly in/out)
-  //
-  //  But we already use left-click for raycasting (clicking blocks).
-  //  So we REMAP the buttons:
-  //    Left click   → nothing (free for our raycaster)
-  //    Right click  → orbit
-  //    Middle click → pan
-  //    Scroll       → zoom (unchanged)
-  //
-  //  THREE.MOUSE is an enum: { LEFT: 0, MIDDLE: 1, RIGHT: 2 }
-  //  The controls read .mouseButtons to decide what each button does.
-
-  const controls = new OrbitControls(camera, renderer.domElement);
-
-  // Remap: right-click = orbit, middle = pan, left = disabled
-  controls.mouseButtons = {
-    LEFT:   null,                  // Don't let OrbitControls capture left click
-    MIDDLE: THREE.MOUSE.PAN,       // Middle-click drag → pan
-    RIGHT:  THREE.MOUSE.ROTATE,    // Right-click drag → orbit
-  };
-
-  // The "target" is the point the camera orbits around and looks at.
-  // We set it to the origin (center of our grid).
-  controls.target.set(0, 0, 0);
-
-  // Enable damping (inertia) — the camera continues to drift slightly
-  // after you release the mouse, which feels much smoother.
-  // When enabled, you MUST call controls.update() in the animation loop.
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-
-  // Limit how far the camera can zoom in/out, and how far it can tilt.
-  // This prevents the user from zooming through the floor or flipping upside down.
-  controls.minDistance = 5;       // Can't zoom closer than 5 units
-  controls.maxDistance = 60;      // Can't zoom farther than 60 units
-  controls.maxPolarAngle = Math.PI / 2.1;  // Can't go below the ground plane
-
-  // Suppress the browser's right-click context menu on the canvas.
-  // Without this, right-click drag would pop open "Copy / Paste / Inspect".
-  renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
-
-  // ============================================================
-  //  STEP 2 — CONFIGURATION OBJECT
-  // ============================================================
-  //
-  //  Instead of hardcoding values everywhere, we put all tweakable
-  //  parameters in one object. This makes it trivial to:
-  //    - Hook up a control panel later (Step 4)
-  //    - Regenerate the scene with different settings
-  //    - Share presets
-
-  const CONFIG = {
-    // Grid layout
-    rows: 8,               // Number of rows in the grid
-    cols: 10,              // Number of columns
-    gap: 0.15,             // Space between blocks (in world units)
-
-    // Block dimensions — each block picks a random value in these ranges
-    blockWidth:  { min: 1, max: 2.5 },
-    blockHeight: { min: 1, max: 6 },
-    blockDepth:  { min: 1, max: 2.5 },
-
-    // Color palette — Mondrian / De Stijl inspired
-    // Each block picks a random color from this array.
-    palette: [
-      '#e63946',  // red
-      '#f4a261',  // orange
-      '#e9c46a',  // yellow
-      '#2a9d8f',  // teal
-      '#264653',  // dark blue
-      '#f1faee',  // off-white
-      '#000000',  // black
-      '#457b9d',  // steel blue
-      '#d62828',  // crimson
-      '#f77f00',  // deep orange
-      '#003049',  // navy
-      '#fcbf49',  // golden
-      '#006d32',  // green
-      '#d64f8e',  // pink
-    ],
-  };
-
-  // ============================================================
-  //  STEP 2 — GENERATIVE GRID FUNCTION
-  // ============================================================
-  //
-  //  generateBlocks() creates the entire grid of 3D boxes.
-  //  It returns a THREE.Group so we can easily remove all blocks
-  //  later when we want to regenerate with new settings.
-  //
-  //  THREE.Group is like a folder — it's an invisible container
-  //  you can add meshes to. Moving/rotating the group moves all
-  //  its children together.
-
-  // We keep a reference to the current group so we can remove it later.
-  let blocksGroup = null;
-
-  function generateBlocks() {
-    // If there's already a group in the scene, remove it first.
-    // This is the "teardown" pattern — clean up before rebuilding.
-    if (blocksGroup) {
-      scene.remove(blocksGroup);
-
-      // IMPORTANT: Three.js doesn't garbage-collect GPU resources automatically.
-      // We must manually dispose of geometry and materials to free VRAM.
-      blocksGroup.traverse((child) => {
-        if (child.isMesh) {
-          child.geometry.dispose();
-          child.material.dispose();
-        }
+      // ----- 3. RENDERER -----
+      // The renderer does the actual drawing. WebGLRenderer uses your GPU
+      // to render the scene very fast (60fps typically).
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true, // Smooth edges instead of jagged pixels
       });
-    }
 
-    // Create a fresh group
-    blocksGroup = new THREE.Group();
+      // Set the render size to fill the entire window.
+      // The second argument (false) prevents Three.js from changing the CSS size —
+      // we want pixel-perfect rendering at the window's device pixel ratio.
+      renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Helper: random float between min and max
-    const rand = (min, max) => Math.random() * (max - min) + min;
+      // Set the pixel ratio to match the display (important for Retina screens).
+      // Without this, the scene would look blurry on high-DPI displays.
+      renderer.setPixelRatio(window.devicePixelRatio);
 
-    // Helper: pick a random item from an array
-    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      // The renderer creates a <canvas> element. We add it to the page.
+      document.body.appendChild(renderer.domElement);
 
-    // We'll calculate the total grid size so we can center it at the origin.
-    // For simplicity, we use average block size + gap to estimate spacing.
-    const avgWidth = (CONFIG.blockWidth.min + CONFIG.blockWidth.max) / 2;
-    const avgDepth = (CONFIG.blockDepth.min + CONFIG.blockDepth.max) / 2;
-    const spacingX = avgWidth + CONFIG.gap;
-    const spacingZ = avgDepth + CONFIG.gap;
+      // ============================================================
+      //  STEP 6 — ORBIT CONTROLS (Right-Click Drag)
+      // ============================================================
+      //
+      //  OrbitControls is a Three.js "addon" — a pre-built utility that
+      //  handles camera orbiting, panning, and zooming via mouse/touch.
+      //
+      //  By default, OrbitControls maps:
+      //    Left click   → orbit (rotate around target)
+      //    Right click  → pan (slide sideways)
+      //    Scroll wheel → zoom (dolly in/out)
+      //
+      //  But we already use left-click for raycasting (clicking blocks).
+      //  So we REMAP the buttons:
+      //    Left click   → nothing (free for our raycaster)
+      //    Right click  → orbit
+      //    Middle click → pan
+      //    Scroll       → zoom (unchanged)
+      //
+      //  THREE.MOUSE is an enum: { LEFT: 0, MIDDLE: 1, RIGHT: 2 }
+      //  The controls read .mouseButtons to decide what each button does.
 
-    // Offset to center the grid around (0, 0, 0)
-    const offsetX = (CONFIG.cols * spacingX) / 2;
-    const offsetZ = (CONFIG.rows * spacingZ) / 2;
+      const controls = new OrbitControls(camera, renderer.domElement);
 
-    for (let row = 0; row < CONFIG.rows; row++) {
-      for (let col = 0; col < CONFIG.cols; col++) {
-        // Random dimensions for this block
-        const w = rand(CONFIG.blockWidth.min, CONFIG.blockWidth.max);
-        const h = rand(CONFIG.blockHeight.min, CONFIG.blockHeight.max);
-        const d = rand(CONFIG.blockDepth.min, CONFIG.blockDepth.max);
+      // Remap: right-click = orbit, middle = pan, left = disabled
+      controls.mouseButtons = {
+        LEFT: null, // Don't let OrbitControls capture left click
+        MIDDLE: THREE.MOUSE.PAN, // Middle-click drag → pan
+        RIGHT: THREE.MOUSE.ROTATE, // Right-click drag → orbit
+      };
 
-        // Create geometry and material for this specific block.
-        // Note: sharing one geometry for all boxes would be more efficient,
-        // but since each block has different dimensions, each needs its own.
-        const geometry = new THREE.BoxGeometry(w, h, d);
-        const material = new THREE.MeshBasicMaterial({
-          color: pick(CONFIG.palette),
-        });
+      // The "target" is the point the camera orbits around and looks at.
+      // We set it to the origin (center of our grid).
+      controls.target.set(0, 0, 0);
 
-        const mesh = new THREE.Mesh(geometry, material);
+      // Enable damping (inertia) — the camera continues to drift slightly
+      // after you release the mouse, which feels much smoother.
+      // When enabled, you MUST call controls.update() in the animation loop.
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
 
-        // Position the block in the grid.
-        // X and Z form the horizontal grid. Y positions the block so it
-        // sits ON the ground (its bottom face at Y=0) rather than being
-        // centered at Y=0 (which would make it poke through the floor).
-        mesh.position.set(
-          col * spacingX - offsetX,   // X: column position, centered
-          h / 2,                       // Y: half the height (bottom at Y=0)
-          row * spacingZ - offsetZ    // Z: row position, centered
+      // Limit how far the camera can zoom in/out, and how far it can tilt.
+      // This prevents the user from zooming through the floor or flipping upside down.
+      controls.minDistance = 5; // Can't zoom closer than 5 units
+      controls.maxDistance = 60; // Can't zoom farther than 60 units
+      controls.maxPolarAngle = Math.PI / 2.1; // Can't go below the ground plane
+
+      // Suppress the browser's right-click context menu on the canvas.
+      // Without this, right-click drag would pop open "Copy / Paste / Inspect".
+      renderer.domElement.addEventListener("contextmenu", (e) =>
+        e.preventDefault(),
+      );
+
+      // ============================================================
+      //  STEP 2 — CONFIGURATION OBJECT
+      // ============================================================
+      //
+      //  Instead of hardcoding values everywhere, we put all tweakable
+      //  parameters in one object. This makes it trivial to:
+      //    - Hook up a control panel later (Step 4)
+      //    - Regenerate the scene with different settings
+      //    - Share presets
+
+      const CONFIG = {
+        // Grid layout
+        rows: 8, // Number of rows in the grid
+        cols: 10, // Number of columns
+        gap: 0.15, // Space between blocks (in world units)
+
+        // Block dimensions — each block picks a random value in these ranges
+        blockWidth: { min: 1, max: 2.5 },
+        blockHeight: { min: 1, max: 6 },
+        blockDepth: { min: 1, max: 2.5 },
+
+        // Color palette — Mondrian / De Stijl inspired
+        // Each block picks a random color from this array.
+        palette: [
+          "#e63946", // red
+          "#f4a261", // orange
+          "#e9c46a", // yellow
+          "#2a9d8f", // teal
+          "#264653", // dark blue
+          "#f1faee", // off-white
+          "#000000", // black
+          "#457b9d", // steel blue
+          "#d62828", // crimson
+          "#f77f00", // deep orange
+          "#003049", // navy
+          "#fcbf49", // golden
+          "#006d32", // green
+          "#d64f8e", // pink
+        ],
+      };
+
+      // ============================================================
+      //  STEP 2 — GENERATIVE GRID FUNCTION
+      // ============================================================
+      //
+      //  generateBlocks() creates the entire grid of 3D boxes.
+      //  It returns a THREE.Group so we can easily remove all blocks
+      //  later when we want to regenerate with new settings.
+      //
+      //  THREE.Group is like a folder — it's an invisible container
+      //  you can add meshes to. Moving/rotating the group moves all
+      //  its children together.
+
+      // We keep a reference to the current group so we can remove it later.
+      let blocksGroup = null;
+
+      function generateBlocks() {
+        // If there's already a group in the scene, remove it first.
+        // This is the "teardown" pattern — clean up before rebuilding.
+        if (blocksGroup) {
+          scene.remove(blocksGroup);
+
+          // IMPORTANT: Three.js doesn't garbage-collect GPU resources automatically.
+          // We must manually dispose of geometry and materials to free VRAM.
+          blocksGroup.traverse((child) => {
+            if (child.isMesh) {
+              child.geometry.dispose();
+              child.material.dispose();
+            }
+          });
+        }
+
+        // Create a fresh group
+        blocksGroup = new THREE.Group();
+
+        // Helper: random float between min and max
+        const rand = (min, max) => Math.random() * (max - min) + min;
+
+        // Helper: pick a random item from an array
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        // We'll calculate the total grid size so we can center it at the origin.
+        // For simplicity, we use average block size + gap to estimate spacing.
+        const avgWidth = (CONFIG.blockWidth.min + CONFIG.blockWidth.max) / 2;
+        const avgDepth = (CONFIG.blockDepth.min + CONFIG.blockDepth.max) / 2;
+        const spacingX = avgWidth + CONFIG.gap;
+        const spacingZ = avgDepth + CONFIG.gap;
+
+        // Offset to center the grid around (0, 0, 0)
+        const offsetX = (CONFIG.cols * spacingX) / 2;
+        const offsetZ = (CONFIG.rows * spacingZ) / 2;
+
+        for (let row = 0; row < CONFIG.rows; row++) {
+          for (let col = 0; col < CONFIG.cols; col++) {
+            // Random dimensions for this block
+            const w = rand(CONFIG.blockWidth.min, CONFIG.blockWidth.max);
+            const h = rand(CONFIG.blockHeight.min, CONFIG.blockHeight.max);
+            const d = rand(CONFIG.blockDepth.min, CONFIG.blockDepth.max);
+
+            // Create geometry and material for this specific block.
+            // Note: sharing one geometry for all boxes would be more efficient,
+            // but since each block has different dimensions, each needs its own.
+            const geometry = new THREE.BoxGeometry(w, h, d);
+            const material = new THREE.MeshBasicMaterial({
+              color: pick(CONFIG.palette),
+            });
+
+            const mesh = new THREE.Mesh(geometry, material);
+
+            // Position the block in the grid.
+            // X and Z form the horizontal grid. Y positions the block so it
+            // sits ON the ground (its bottom face at Y=0) rather than being
+            // centered at Y=0 (which would make it poke through the floor).
+            mesh.position.set(
+              col * spacingX - offsetX, // X: column position, centered
+              h / 2, // Y: half the height (bottom at Y=0)
+              row * spacingZ - offsetZ, // Z: row position, centered
+            );
+
+            blocksGroup.add(mesh);
+          }
+        }
+
+        scene.add(blocksGroup);
+      }
+
+      // Generate the initial set of blocks
+      generateBlocks();
+
+      // ============================================================
+      //  STEP 3 — CLICK-TO-ROTATE (Raycasting + Per-Object Animation)
+      // ============================================================
+      //
+      //  The big question: how do you know which 3D object was clicked?
+      //
+      //  You can't just use DOM click events — the entire scene is ONE <canvas>.
+      //  Instead, Three.js uses RAYCASTING:
+      //
+      //    1. Convert the mouse's screen position (pixels) into "normalized
+      //       device coordinates" (NDC): X and Y from -1 to +1.
+      //    2. Shoot an invisible ray from the camera through that point.
+      //    3. Check which objects in the scene the ray intersects.
+      //
+      //  It's like pointing a laser pointer through the screen — whatever
+      //  3D object the laser hits first is what was "clicked".
+
+      // The Raycaster object does the math for us.
+      const raycaster = new THREE.Raycaster();
+
+      // A Vector2 to store the mouse position in NDC (-1 to +1).
+      const pointer = new THREE.Vector2();
+
+      // We store rotation state on each mesh using "userData" — a built-in
+      // property on every Three.js object where you can attach any custom data.
+      // This avoids global arrays and keeps each object self-contained.
+      //
+      // When a box is clicked, we set:
+      //   mesh.userData.spinning = true
+      //   mesh.userData.spinAxis = 'x', 'y', or 'z' (random)
+      //   mesh.userData.spinSpeed = rotation speed in radians per frame
+
+      // ============================================================
+      //  STEP 5 — PALETTE PRESETS
+      // ============================================================
+      //
+      //  Each palette is an array of hex color strings.
+      //  Switching palettes swaps CONFIG.palette and regenerates the scene.
+
+      const PALETTES = {
+        mondrian: [
+          "#e63946",
+          "#f4a261",
+          "#e9c46a",
+          "#2a9d8f",
+          "#264653",
+          "#f1faee",
+          "#000000",
+          "#457b9d",
+          "#d62828",
+          "#f77f00",
+          "#003049",
+          "#fcbf49",
+          "#006d32",
+          "#d64f8e",
+        ],
+        pastel: [
+          "#ffd6e0",
+          "#ffdfba",
+          "#ffffba",
+          "#baffc9",
+          "#bae1ff",
+          "#e8d5f5",
+          "#f0e6ef",
+          "#d4f0f0",
+          "#fcf5c7",
+          "#f5c7c7",
+          "#c7f5e3",
+          "#d0d0ff",
+        ],
+        monochrome: [
+          "#ffffff",
+          "#e0e0e0",
+          "#c0c0c0",
+          "#a0a0a0",
+          "#808080",
+          "#606060",
+          "#404040",
+          "#202020",
+          "#000000",
+          "#f5f5f5",
+          "#d0d0d0",
+          "#b0b0b0",
+        ],
+        neon: [
+          "#ff006e",
+          "#fb5607",
+          "#ffbe0b",
+          "#8338ec",
+          "#3a86ff",
+          "#06d6a0",
+          "#ff4cc9",
+          "#00f5d4",
+          "#fee440",
+          "#f15bb5",
+          "#00bbf9",
+          "#9b5de5",
+        ],
+        earth: [
+          "#6b4226",
+          "#8b5e3c",
+          "#a67b5b",
+          "#c4a882",
+          "#dbc1ac",
+          "#4a7c59",
+          "#6b8f71",
+          "#8fbc8f",
+          "#d2b48c",
+          "#f5deb3",
+          "#c8a96e",
+          "#483c32",
+        ],
+      };
+
+      // Animation state
+      CONFIG.rotationSpeed = 0.03; // radians per frame (~1.7 degrees)
+      let paused = false; // pause/resume flag
+
+      function onPointerDown(event) {
+        // --- Only raycast on LEFT click (button 0) ---
+        // Right-click (button 2) is now handled by OrbitControls for camera orbit.
+        // event.button values: 0 = left, 1 = middle, 2 = right
+        if (event.button !== 0) return;
+
+        // --- Convert pixel coordinates to NDC ---
+        //
+        // Screen pixels:  (0,0) = top-left,  (width, height) = bottom-right
+        // NDC:            (-1,+1) = top-left, (+1,-1) = bottom-right
+        //
+        // Formula:
+        //   ndcX =  (pixelX / width)  * 2 - 1     →  maps 0..width  to -1..+1
+        //   ndcY = -(pixelY / height) * 2 + 1     →  maps 0..height to +1..-1
+        //                                              (negative because Y is flipped)
+        pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // --- Cast the ray ---
+        // setFromCamera() creates a ray starting at the camera, passing through
+        // the pointer's NDC position. It handles all the matrix math internally.
+        raycaster.setFromCamera(pointer, camera);
+
+        // --- Check for intersections ---
+        // intersectObjects() tests the ray against an array of objects.
+        // The second argument (true) means "check children recursively" —
+        // important because our meshes are inside a Group.
+        const intersects = raycaster.intersectObjects(
+          blocksGroup.children,
+          false,
         );
 
-        blocksGroup.add(mesh);
-      }
-    }
+        if (intersects.length > 0) {
+          // intersects[0] is the CLOSEST hit. Its .object is the mesh.
+          const hitMesh = intersects[0].object;
 
-    scene.add(blocksGroup);
-  }
+          // Toggle spinning: if already spinning, stop it. Otherwise, start.
+          if (hitMesh.userData.spinning) {
+            hitMesh.userData.spinning = false;
+          } else {
+            hitMesh.userData.spinning = true;
 
-  // Generate the initial set of blocks
-  generateBlocks();
-
-  // ============================================================
-  //  STEP 3 — CLICK-TO-ROTATE (Raycasting + Per-Object Animation)
-  // ============================================================
-  //
-  //  The big question: how do you know which 3D object was clicked?
-  //
-  //  You can't just use DOM click events — the entire scene is ONE <canvas>.
-  //  Instead, Three.js uses RAYCASTING:
-  //
-  //    1. Convert the mouse's screen position (pixels) into "normalized
-  //       device coordinates" (NDC): X and Y from -1 to +1.
-  //    2. Shoot an invisible ray from the camera through that point.
-  //    3. Check which objects in the scene the ray intersects.
-  //
-  //  It's like pointing a laser pointer through the screen — whatever
-  //  3D object the laser hits first is what was "clicked".
-
-  // The Raycaster object does the math for us.
-  const raycaster = new THREE.Raycaster();
-
-  // A Vector2 to store the mouse position in NDC (-1 to +1).
-  const pointer = new THREE.Vector2();
-
-  // We store rotation state on each mesh using "userData" — a built-in
-  // property on every Three.js object where you can attach any custom data.
-  // This avoids global arrays and keeps each object self-contained.
-  //
-  // When a box is clicked, we set:
-  //   mesh.userData.spinning = true
-  //   mesh.userData.spinAxis = 'x', 'y', or 'z' (random)
-  //   mesh.userData.spinSpeed = rotation speed in radians per frame
-
-  // ============================================================
-  //  STEP 5 — PALETTE PRESETS
-  // ============================================================
-  //
-  //  Each palette is an array of hex color strings.
-  //  Switching palettes swaps CONFIG.palette and regenerates the scene.
-
-  const PALETTES = {
-    mondrian: [
-      '#e63946', '#f4a261', '#e9c46a', '#2a9d8f', '#264653',
-      '#f1faee', '#000000', '#457b9d', '#d62828', '#f77f00',
-      '#003049', '#fcbf49', '#006d32', '#d64f8e',
-    ],
-    pastel: [
-      '#ffd6e0', '#ffdfba', '#ffffba', '#baffc9', '#bae1ff',
-      '#e8d5f5', '#f0e6ef', '#d4f0f0', '#fcf5c7', '#f5c7c7',
-      '#c7f5e3', '#d0d0ff',
-    ],
-    monochrome: [
-      '#ffffff', '#e0e0e0', '#c0c0c0', '#a0a0a0', '#808080',
-      '#606060', '#404040', '#202020', '#000000', '#f5f5f5',
-      '#d0d0d0', '#b0b0b0',
-    ],
-    neon: [
-      '#ff006e', '#fb5607', '#ffbe0b', '#8338ec', '#3a86ff',
-      '#06d6a0', '#ff4cc9', '#00f5d4', '#fee440', '#f15bb5',
-      '#00bbf9', '#9b5de5',
-    ],
-    earth: [
-      '#6b4226', '#8b5e3c', '#a67b5b', '#c4a882', '#dbc1ac',
-      '#4a7c59', '#6b8f71', '#8fbc8f', '#d2b48c', '#f5deb3',
-      '#c8a96e', '#483c32',
-    ],
-  };
-
-  // Animation state
-  CONFIG.rotationSpeed = 0.03;  // radians per frame (~1.7 degrees)
-  let paused = false;           // pause/resume flag
-
-  function onPointerDown(event) {
-    // --- Only raycast on LEFT click (button 0) ---
-    // Right-click (button 2) is now handled by OrbitControls for camera orbit.
-    // event.button values: 0 = left, 1 = middle, 2 = right
-    if (event.button !== 0) return;
-
-    // --- Convert pixel coordinates to NDC ---
-    //
-    // Screen pixels:  (0,0) = top-left,  (width, height) = bottom-right
-    // NDC:            (-1,+1) = top-left, (+1,-1) = bottom-right
-    //
-    // Formula:
-    //   ndcX =  (pixelX / width)  * 2 - 1     →  maps 0..width  to -1..+1
-    //   ndcY = -(pixelY / height) * 2 + 1     →  maps 0..height to +1..-1
-    //                                              (negative because Y is flipped)
-    pointer.x =  (event.clientX / window.innerWidth)  * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // --- Cast the ray ---
-    // setFromCamera() creates a ray starting at the camera, passing through
-    // the pointer's NDC position. It handles all the matrix math internally.
-    raycaster.setFromCamera(pointer, camera);
-
-    // --- Check for intersections ---
-    // intersectObjects() tests the ray against an array of objects.
-    // The second argument (true) means "check children recursively" —
-    // important because our meshes are inside a Group.
-    const intersects = raycaster.intersectObjects(blocksGroup.children, false);
-
-    if (intersects.length > 0) {
-      // intersects[0] is the CLOSEST hit. Its .object is the mesh.
-      const hitMesh = intersects[0].object;
-
-      // Toggle spinning: if already spinning, stop it. Otherwise, start.
-      if (hitMesh.userData.spinning) {
-        hitMesh.userData.spinning = false;
-      } else {
-        hitMesh.userData.spinning = true;
-
-        // Pick a random axis: 'x', 'y', or 'z'
-        const axes = ['x', 'y', 'z'];
-        hitMesh.userData.spinAxis = axes[Math.floor(Math.random() * 3)];
-        hitMesh.userData.spinSpeed = CONFIG.rotationSpeed;
-      }
-    }
-  }
-
-  // Listen for clicks on the canvas.
-  // We use 'pointerdown' instead of 'click' because it fires faster
-  // and also works for touch screens.
-  renderer.domElement.addEventListener('pointerdown', onPointerDown);
-
-  // ============================================================
-  //  THE RENDER LOOP (Animation Loop)
-  // ============================================================
-  //
-  //  Now the loop does actual work: it checks every mesh in the group
-  //  and rotates the ones that have spinning = true.
-  //
-  //  mesh.rotation is an Euler object with .x, .y, .z properties
-  //  (angles in radians). Adding to them each frame = continuous rotation.
-
-  function animate() {
-    requestAnimationFrame(animate);
-
-    // --- Animate spinning blocks (skip if paused) ---
-    if (!paused && blocksGroup) {
-      blocksGroup.children.forEach((mesh) => {
-        if (mesh.userData.spinning) {
-          const axis = mesh.userData.spinAxis;
-          mesh.rotation[axis] += mesh.userData.spinSpeed;
+            // Pick a random axis: 'x', 'y', or 'z'
+            const axes = ["x", "y", "z"];
+            hitMesh.userData.spinAxis = axes[Math.floor(Math.random() * 3)];
+            hitMesh.userData.spinSpeed = CONFIG.rotationSpeed;
+          }
         }
+      }
+
+      // Listen for clicks on the canvas.
+      // We use 'pointerdown' instead of 'click' because it fires faster
+      // and also works for touch screens.
+      renderer.domElement.addEventListener("pointerdown", onPointerDown);
+
+      // ============================================================
+      //  THE RENDER LOOP (Animation Loop)
+      // ============================================================
+      //
+      //  Now the loop does actual work: it checks every mesh in the group
+      //  and rotates the ones that have spinning = true.
+      //
+      //  mesh.rotation is an Euler object with .x, .y, .z properties
+      //  (angles in radians). Adding to them each frame = continuous rotation.
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // --- Animate spinning blocks (skip if paused) ---
+        if (!paused && blocksGroup) {
+          blocksGroup.children.forEach((mesh) => {
+            if (mesh.userData.spinning) {
+              const axis = mesh.userData.spinAxis;
+              mesh.rotation[axis] += mesh.userData.spinSpeed;
+            }
+          });
+        }
+
+        // Update OrbitControls — required every frame when damping is enabled.
+        // This is what makes the camera drift smoothly after releasing the mouse.
+        controls.update();
+
+        // Always render (even when paused) so the scene is visible
+        renderer.render(scene, camera);
+      }
+
+      // Kick off the loop!
+      animate();
+
+      // ============================================================
+      //  STEP 5 — WINDOW RESIZE HANDLING
+      // ============================================================
+      //
+      //  When the browser window is resized, we must update TWO things:
+      //    1. The renderer's pixel dimensions
+      //    2. The camera's aspect ratio
+      //
+      //  Without this, the scene would stretch or crop incorrectly.
+      //  We also call camera.updateProjectionMatrix() — this recalculates
+      //  the internal math that converts 3D → 2D based on the new aspect ratio.
+
+      window.addEventListener("resize", () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
       });
-    }
 
-    // Update OrbitControls — required every frame when damping is enabled.
-    // This is what makes the camera drift smoothly after releasing the mouse.
-    controls.update();
+      // ============================================================
+      //  STEP 4 — WIRING THE CONFIG PANEL TO THREE.JS
+      // ============================================================
+      //
+      //  The panel is plain HTML. We connect it to our CONFIG object
+      //  with standard DOM event listeners. When the user moves a slider:
+      //    1. Update CONFIG with the new value
+      //    2. Update the displayed value text
+      //    3. For some settings, regenerate the scene immediately
+      //
+      //  This is the simplest pattern for connecting UI to 3D state.
+      //  Libraries like dat.gui or lil-gui automate this, but understanding
+      //  the manual version first is more educational.
 
-    // Always render (even when paused) so the scene is visible
-    renderer.render(scene, camera);
-  }
+      // --- Panel toggle ---
+      const panelToggle = document.getElementById("panel-toggle");
+      const configPanel = document.getElementById("config-panel");
 
-  // Kick off the loop!
-  animate();
+      panelToggle.addEventListener("click", () => {
+        configPanel.classList.toggle("open");
+        panelToggle.textContent = configPanel.classList.contains("open")
+          ? "Close"
+          : "Config";
+      });
 
-  // ============================================================
-  //  STEP 5 — WINDOW RESIZE HANDLING
-  // ============================================================
-  //
-  //  When the browser window is resized, we must update TWO things:
-  //    1. The renderer's pixel dimensions
-  //    2. The camera's aspect ratio
-  //
-  //  Without this, the scene would stretch or crop incorrectly.
-  //  We also call camera.updateProjectionMatrix() — this recalculates
-  //  the internal math that converts 3D → 2D based on the new aspect ratio.
+      // --- Helper: wire a slider to CONFIG ---
+      // This reduces boilerplate. For each slider, we:
+      //   - Listen for 'input' events (fires continuously while dragging)
+      //   - Parse the value as a float
+      //   - Call a setter function to update CONFIG
+      //   - Update the display span
+      function wireSlider(sliderId, displayId, setter) {
+        const slider = document.getElementById(sliderId);
+        const display = document.getElementById(displayId);
 
-  window.addEventListener('resize', () => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+        slider.addEventListener("input", () => {
+          const value = parseFloat(slider.value);
+          display.textContent = value;
+          setter(value);
+        });
+      }
 
-    renderer.setSize(w, h);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  });
+      // Wire each slider to its CONFIG property.
+      // Grid sliders don't auto-regenerate — you click "Regenerate" for those.
+      wireSlider("cfg-rows", "val-rows", (v) => {
+        CONFIG.rows = v;
+      });
+      wireSlider("cfg-cols", "val-cols", (v) => {
+        CONFIG.cols = v;
+      });
+      wireSlider("cfg-gap", "val-gap", (v) => {
+        CONFIG.gap = v;
+      });
+      wireSlider("cfg-maxHeight", "val-maxHeight", (v) => {
+        CONFIG.blockHeight.max = v;
+      });
+      wireSlider("cfg-maxWidth", "val-maxWidth", (v) => {
+        CONFIG.blockWidth.max = v;
+        CONFIG.blockDepth.max = v;
+      });
+      wireSlider("cfg-speed", "val-speed", (v) => {
+        CONFIG.rotationSpeed = v;
+      });
 
-  // ============================================================
-  //  STEP 4 — WIRING THE CONFIG PANEL TO THREE.JS
-  // ============================================================
-  //
-  //  The panel is plain HTML. We connect it to our CONFIG object
-  //  with standard DOM event listeners. When the user moves a slider:
-  //    1. Update CONFIG with the new value
-  //    2. Update the displayed value text
-  //    3. For some settings, regenerate the scene immediately
-  //
-  //  This is the simplest pattern for connecting UI to 3D state.
-  //  Libraries like dat.gui or lil-gui automate this, but understanding
-  //  the manual version first is more educational.
+      // --- Regenerate button ---
+      document
+        .getElementById("btn-regenerate")
+        .addEventListener("click", () => {
+          generateBlocks();
+        });
 
-  // --- Panel toggle ---
-  const panelToggle = document.getElementById('panel-toggle');
-  const configPanel = document.getElementById('config-panel');
+      // --- Pause / Resume button ---
+      const btnPause = document.getElementById("btn-pause");
+      btnPause.addEventListener("click", () => {
+        paused = !paused;
+        btnPause.textContent = paused ? "Resume" : "Pause";
+      });
 
-  panelToggle.addEventListener('click', () => {
-    configPanel.classList.toggle('open');
-    panelToggle.textContent = configPanel.classList.contains('open')
-      ? 'Close'
-      : 'Config';
-  });
+      // ============================================================
+      //  STEP 5 — PALETTE SELECTOR WIRING
+      // ============================================================
+      //
+      //  When the user picks a new palette from the dropdown:
+      //    1. Swap CONFIG.palette to the selected preset
+      //    2. Update the color swatches preview
+      //    3. Regenerate the scene with the new colors
 
-  // --- Helper: wire a slider to CONFIG ---
-  // This reduces boilerplate. For each slider, we:
-  //   - Listen for 'input' events (fires continuously while dragging)
-  //   - Parse the value as a float
-  //   - Call a setter function to update CONFIG
-  //   - Update the display span
-  function wireSlider(sliderId, displayId, setter) {
-    const slider = document.getElementById(sliderId);
-    const display = document.getElementById(displayId);
+      const paletteSelect = document.getElementById("cfg-palette");
+      const palettePreview = document.getElementById("palette-preview");
 
-    slider.addEventListener('input', () => {
-      const value = parseFloat(slider.value);
-      display.textContent = value;
-      setter(value);
-    });
-  }
+      // Render color swatches for the current palette
+      function updatePalettePreview() {
+        palettePreview.innerHTML = "";
+        CONFIG.palette.forEach((color) => {
+          const swatch = document.createElement("div");
+          swatch.className = "swatch";
+          swatch.style.background = color;
+          palettePreview.appendChild(swatch);
+        });
+      }
 
-  // Wire each slider to its CONFIG property.
-  // Grid sliders don't auto-regenerate — you click "Regenerate" for those.
-  wireSlider('cfg-rows',      'val-rows',      (v) => { CONFIG.rows = v; });
-  wireSlider('cfg-cols',      'val-cols',      (v) => { CONFIG.cols = v; });
-  wireSlider('cfg-gap',       'val-gap',       (v) => { CONFIG.gap = v; });
-  wireSlider('cfg-maxHeight', 'val-maxHeight', (v) => { CONFIG.blockHeight.max = v; });
-  wireSlider('cfg-maxWidth',  'val-maxWidth',  (v) => { CONFIG.blockWidth.max = v; CONFIG.blockDepth.max = v; });
-  wireSlider('cfg-speed',     'val-speed',     (v) => { CONFIG.rotationSpeed = v; });
+      paletteSelect.addEventListener("change", () => {
+        CONFIG.palette = PALETTES[paletteSelect.value];
+        updatePalettePreview();
+        generateBlocks();
+      });
 
-  // --- Regenerate button ---
-  document.getElementById('btn-regenerate').addEventListener('click', () => {
-    generateBlocks();
-  });
+      // Show initial palette swatches
+      updatePalettePreview();
 
-  // --- Pause / Resume button ---
-  const btnPause = document.getElementById('btn-pause');
-  btnPause.addEventListener('click', () => {
-    paused = !paused;
-    btnPause.textContent = paused ? 'Resume' : 'Pause';
-  });
-
-  // ============================================================
-  //  STEP 5 — PALETTE SELECTOR WIRING
-  // ============================================================
-  //
-  //  When the user picks a new palette from the dropdown:
-  //    1. Swap CONFIG.palette to the selected preset
-  //    2. Update the color swatches preview
-  //    3. Regenerate the scene with the new colors
-
-  const paletteSelect = document.getElementById('cfg-palette');
-  const palettePreview = document.getElementById('palette-preview');
-
-  // Render color swatches for the current palette
-  function updatePalettePreview() {
-    palettePreview.innerHTML = '';
-    CONFIG.palette.forEach((color) => {
-      const swatch = document.createElement('div');
-      swatch.className = 'swatch';
-      swatch.style.background = color;
-      palettePreview.appendChild(swatch);
-    });
-  }
-
-  paletteSelect.addEventListener('change', () => {
-    CONFIG.palette = PALETTES[paletteSelect.value];
-    updatePalettePreview();
-    generateBlocks();
-  });
-
-  // Show initial palette swatches
-  updatePalettePreview();
-
-  // Prevent clicks on the panel from triggering raycasting on the scene.
-  // Without this, clicking a slider would also try to rotate a block behind it.
-  configPanel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  panelToggle.addEventListener('pointerdown', (e) => e.stopPropagation());
-
-</script>
-
-</body>
+      // Prevent clicks on the panel from triggering raycasting on the scene.
+      // Without this, clicking a slider would also try to rotate a block behind it.
+      configPanel.addEventListener("pointerdown", (e) => e.stopPropagation());
+      panelToggle.addEventListener("pointerdown", (e) => e.stopPropagation());
+    </script>
+  </body>
 </html>
