@@ -93,7 +93,7 @@
   //   Z = toward/away from you (positive Z comes toward you)
   //
   // We place the camera up and back so it looks down at the scene at an angle.
-  camera.position.set(5, 8, 12);
+  camera.position.set(8, 12, 18);
 
   // Point the camera at the center of the scene (0, 0, 0).
   camera.lookAt(0, 0, 0);
@@ -118,26 +118,133 @@
   document.body.appendChild(renderer.domElement);
 
   // ============================================================
-  //  OUR FIRST 3D OBJECT — A SINGLE COLORED BOX
+  //  STEP 2 — CONFIGURATION OBJECT
   // ============================================================
   //
-  //  Every visible object in Three.js is a "Mesh", which is made of:
-  //    Geometry  = the shape (vertices, faces)
-  //    Material  = the surface appearance (color, texture, shininess)
+  //  Instead of hardcoding values everywhere, we put all tweakable
+  //  parameters in one object. This makes it trivial to:
+  //    - Hook up a control panel later (Step 4)
+  //    - Regenerate the scene with different settings
+  //    - Share presets
+
+  const CONFIG = {
+    // Grid layout
+    rows: 8,               // Number of rows in the grid
+    cols: 10,              // Number of columns
+    gap: 0.15,             // Space between blocks (in world units)
+
+    // Block dimensions — each block picks a random value in these ranges
+    blockWidth:  { min: 1, max: 2.5 },
+    blockHeight: { min: 1, max: 6 },
+    blockDepth:  { min: 1, max: 2.5 },
+
+    // Color palette — Mondrian / De Stijl inspired
+    // Each block picks a random color from this array.
+    palette: [
+      '#e63946',  // red
+      '#f4a261',  // orange
+      '#e9c46a',  // yellow
+      '#2a9d8f',  // teal
+      '#264653',  // dark blue
+      '#f1faee',  // off-white
+      '#000000',  // black
+      '#457b9d',  // steel blue
+      '#d62828',  // crimson
+      '#f77f00',  // deep orange
+      '#003049',  // navy
+      '#fcbf49',  // golden
+      '#006d32',  // green
+      '#d64f8e',  // pink
+    ],
+  };
+
+  // ============================================================
+  //  STEP 2 — GENERATIVE GRID FUNCTION
+  // ============================================================
   //
-  //  BoxGeometry(width, height, depth) creates a rectangular box.
-  //  MeshBasicMaterial does NOT react to light — it's just a flat color.
-  //  This is exactly what the Opus reference uses: bold, flat, unlit colors.
+  //  generateBlocks() creates the entire grid of 3D boxes.
+  //  It returns a THREE.Group so we can easily remove all blocks
+  //  later when we want to regenerate with new settings.
+  //
+  //  THREE.Group is like a folder — it's an invisible container
+  //  you can add meshes to. Moving/rotating the group moves all
+  //  its children together.
 
-  const geometry = new THREE.BoxGeometry(2, 3, 2);  // width=2, height=3, depth=2
+  // We keep a reference to the current group so we can remove it later.
+  let blocksGroup = null;
 
-  const material = new THREE.MeshBasicMaterial({
-    color: '#e63946',   // A bold red
-  });
+  function generateBlocks() {
+    // If there's already a group in the scene, remove it first.
+    // This is the "teardown" pattern — clean up before rebuilding.
+    if (blocksGroup) {
+      scene.remove(blocksGroup);
 
-  // Combine geometry + material into a mesh, then add it to the scene.
-  const box = new THREE.Mesh(geometry, material);
-  scene.add(box);
+      // IMPORTANT: Three.js doesn't garbage-collect GPU resources automatically.
+      // We must manually dispose of geometry and materials to free VRAM.
+      blocksGroup.traverse((child) => {
+        if (child.isMesh) {
+          child.geometry.dispose();
+          child.material.dispose();
+        }
+      });
+    }
+
+    // Create a fresh group
+    blocksGroup = new THREE.Group();
+
+    // Helper: random float between min and max
+    const rand = (min, max) => Math.random() * (max - min) + min;
+
+    // Helper: pick a random item from an array
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    // We'll calculate the total grid size so we can center it at the origin.
+    // For simplicity, we use average block size + gap to estimate spacing.
+    const avgWidth = (CONFIG.blockWidth.min + CONFIG.blockWidth.max) / 2;
+    const avgDepth = (CONFIG.blockDepth.min + CONFIG.blockDepth.max) / 2;
+    const spacingX = avgWidth + CONFIG.gap;
+    const spacingZ = avgDepth + CONFIG.gap;
+
+    // Offset to center the grid around (0, 0, 0)
+    const offsetX = (CONFIG.cols * spacingX) / 2;
+    const offsetZ = (CONFIG.rows * spacingZ) / 2;
+
+    for (let row = 0; row < CONFIG.rows; row++) {
+      for (let col = 0; col < CONFIG.cols; col++) {
+        // Random dimensions for this block
+        const w = rand(CONFIG.blockWidth.min, CONFIG.blockWidth.max);
+        const h = rand(CONFIG.blockHeight.min, CONFIG.blockHeight.max);
+        const d = rand(CONFIG.blockDepth.min, CONFIG.blockDepth.max);
+
+        // Create geometry and material for this specific block.
+        // Note: sharing one geometry for all boxes would be more efficient,
+        // but since each block has different dimensions, each needs its own.
+        const geometry = new THREE.BoxGeometry(w, h, d);
+        const material = new THREE.MeshBasicMaterial({
+          color: pick(CONFIG.palette),
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+
+        // Position the block in the grid.
+        // X and Z form the horizontal grid. Y positions the block so it
+        // sits ON the ground (its bottom face at Y=0) rather than being
+        // centered at Y=0 (which would make it poke through the floor).
+        mesh.position.set(
+          col * spacingX - offsetX,   // X: column position, centered
+          h / 2,                       // Y: half the height (bottom at Y=0)
+          row * spacingZ - offsetZ    // Z: row position, centered
+        );
+
+        blocksGroup.add(mesh);
+      }
+    }
+
+    scene.add(blocksGroup);
+  }
+
+  // Generate the initial set of blocks
+  generateBlocks();
 
   // ============================================================
   //  THE RENDER LOOP (Animation Loop)
