@@ -44,12 +44,13 @@ Each step corresponds to a git commit — use `git log` to walk through the prog
 
 ## Tech Stack
 
-- [Three.js](https://threejs.org/) v0.170.0 via CDN (unpkg)
-- Single HTML file — all CSS and JS inline
-- No dependencies, no bundler, no framework
+- React 19 + TypeScript + Vite
+- [Three.js](https://threejs.org/) v0.170.0
+- Vanilla CSS design system
+- Single-file vanilla fallback retained in `index.vanilla.html`
 
 ## Follow ups tasks
 
-- [ ] Export the animation config as a JSON
-- [ ] Export the animation with the current config as a "pasteable" widget to quickly add it to a page
-- [ ] Migrate code to React and typescript
+- [x] Export the animation config as a JSON
+- [x] Export the animation with the current config as a "pasteable" widget to quickly add it to a page
+- [x] Migrate code to React and typescript
